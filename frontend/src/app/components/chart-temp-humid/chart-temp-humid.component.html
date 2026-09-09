@@ -1,0 +1,27 @@
+<div class="chart-wrapper" *ngIf="readings.length; else empty">
+  <div class="sensor-toggles">
+    <span>Cảm biến:</span>
+    <label *ngFor="let id of sensorIds" class="toggle">
+      <input type="checkbox" [checked]="activeSensorIds.has(id)" (change)="toggleSensor(id)" />
+      #{{ id }}
+    </label>
+  </div>
+
+  <div class="chart-block">
+    <h4>Nhiệt độ theo thời gian (°C)</h4>
+    <div class="canvas-box">
+      <canvas baseChart [data]="tempChartData" [options]="chartOptions" type="line"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-block">
+    <h4>Độ ẩm theo thời gian (%)</h4>
+    <div class="canvas-box">
+      <canvas baseChart [data]="rhChartData" [options]="chartOptions" type="line"></canvas>
+    </div>
+  </div>
+</div>
+
+<ng-template #empty>
+  <p class="empty-msg">Chưa có dữ liệu để hiển thị. Hãy tải lên file JSON hoặc chọn bộ lọc khác.</p>
+</ng-template>

@@ -1,0 +1,80 @@
+<div class="dashboard">
+  <header>
+    <h1>Giám sát nhiệt độ &amp; độ ẩm</h1>
+    <p class="subtitle">Chart hiển thị {{ readings.length }} bản ghi gần nhất</p>
+  </header>
+
+  <div class="toolbar">
+    <label class="device-select">
+      Thiết bị
+      <select [(ngModel)]="selectedSerial" (change)="onSerialChange()">
+        <option value="">-- Tất cả --</option>
+        <option *ngFor="let s of sites" [value]="s.serial">{{ s.serial }} ({{ s.site }})</option>
+      </select>
+    </label>
+
+    <span class="site-label" *ngIf="selectedSite">Vị trí: {{ selectedSite }}</span>
+
+    <div class="spacer"></div>
+
+    <button class="refresh-btn" (click)="refreshNow()" [disabled]="loading">
+      {{ loading ? 'Đang tải...' : 'Làm mới' }}
+    </button>
+    <button class="export-btn" (click)="toggleExportPanel()">
+      Xuất Excel
+    </button>
+  </div>
+
+  <!-- Panel chọn ràng buộc dữ liệu xuất Excel -->
+  <div class="export-panel" *ngIf="showExportPanel">
+    <h4>Tùy chọn xuất Excel</h4>
+
+    <div class="mode-tabs">
+      <button
+        type="button"
+        [class.active]="exportMode === 'latest'"
+        (click)="exportMode = 'latest'"
+      >
+        Số bản ghi gần nhất
+      </button>
+      <button
+        type="button"
+        [class.active]="exportMode === 'range'"
+        (click)="exportMode = 'range'"
+      >
+        Theo khoảng thời gian
+      </button>
+    </div>
+
+    <div class="mode-body" *ngIf="exportMode === 'latest'">
+      <label>
+        Số bản ghi gần nhất muốn xuất
+        <input type="number" min="1" max="5000" [(ngModel)]="exportLimit" />
+      </label>
+    </div>
+
+    <div class="mode-body range-body" *ngIf="exportMode === 'range'">
+      <label>
+        Từ thời điểm
+        <input type="datetime-local" [(ngModel)]="exportFrom" />
+      </label>
+      <label>
+        Đến thời điểm
+        <input type="datetime-local" [(ngModel)]="exportTo" />
+      </label>
+    </div>
+
+    <p class="export-error" *ngIf="exportError">{{ exportError }}</p>
+
+    <div class="export-actions">
+      <button class="cancel-btn" (click)="showExportPanel = false">Hủy</button>
+      <button class="confirm-btn" (click)="exportExcel()" [disabled]="exporting">
+        {{ exporting ? 'Đang xuất...' : 'Xuất file' }}
+      </button>
+    </div>
+  </div>
+
+  <section class="chart-section">
+    <app-chart-temp-humid [readings]="readings"></app-chart-temp-humid>
+  </section>
+</div>

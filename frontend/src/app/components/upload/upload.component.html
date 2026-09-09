@@ -1,0 +1,22 @@
+<div class="upload-card">
+  <h3>Tải lên dữ liệu (.json)</h3>
+
+  <div
+    class="dropzone"
+    [class.dragging]="isDragging"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)"
+  >
+    <input type="file" accept="application/json,.json" (change)="onFileSelected($event)" id="fileInput" hidden />
+    <label for="fileInput" class="pick-btn">Chọn file</label>
+    <p *ngIf="selectedFile">{{ selectedFile.name }}</p>
+    <p *ngIf="!selectedFile" class="hint">hoặc kéo thả file .json vào đây</p>
+  </div>
+
+  <button class="upload-btn" [disabled]="!selectedFile || isUploading" (click)="upload()">
+    {{ isUploading ? 'Đang tải lên...' : 'Tải lên' }}
+  </button>
+
+  <p class="message" [class.error]="isError" *ngIf="message">{{ message }}</p>
+</div>

@@ -1,0 +1,49 @@
+.chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sensor-toggles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #475569;
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+}
+
+.chart-block {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #1f2937;
+  }
+}
+
+.canvas-box {
+  position: relative;
+  height: 320px;
+}
+
+.empty-msg {
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 0;
+}

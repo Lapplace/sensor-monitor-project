@@ -1,0 +1,43 @@
+{
+  "serial": "CMC-AX1500-0001",
+  "site": "B1/K4/1-DK2.KV4",
+  "ts": 1786557160,
+  "sensors": [
+    {
+      "id": 1,
+      "temp": 31.2,
+      "rh": 68.3,
+      "status": "ok"
+    },
+    {
+      "id": 2,
+      "temp": 30.9,
+      "rh": 68.4,
+      "status": "ok"
+    },
+    {
+      "id": 3,
+      "temp": 31.1,
+      "rh": 69.4,
+      "status": "ok"
+    },
+    {
+      "id": 4,
+      "temp": 31.5,
+      "rh": 67.8,
+      "status": "ok"
+    },
+    {
+      "id": 5,
+      "temp": 30.3,
+      "rh": 69.3,
+      "status": "ok"
+    },
+    {
+      "id": 6,
+      "temp": 31.5,
+      "rh": 68.9,
+      "status": "ok"
+    }
+  ]
+}
