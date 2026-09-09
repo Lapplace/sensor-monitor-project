@@ -1,1 +1,30 @@
 hướng dẫn chạy file 
+1. kết nối mongodb
+2. Clone code
+powershell
+git clone https://github.com/Lapplace/sensor-monitor-project.git
+cd sensor-monitor-project
+3. Setup Backend
+powershell
+cd backend
+py -3.12 -m venv venv
+venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+Copy-Item .env.example .env
+uvicorn app.main:app --reload --port 8000
+
+(không cần mở .env sửa gì cả — giữ nguyên mặc định)
+
+4. Setup Frontend (terminal khác)
+powershell
+cd frontend
+npm install
+ng serve
+5. (Tùy chọn) Tool mô phỏng thiết bị test
+powershell
+cd tools
+pip install -r requirements.txt
+python simulate_device.py --interval 10
+
+Lưu ý: vì đây là MongoDB riêng biệt trên máy mới, database sẽ trống hoàn toàn lúc đầu — không thấy dữ liệu cũ từ máy trước. Bạn cần upload lại dữ liệu mẫu hoặc chạy simulate_device.py để có dữ liệu test trên máy này.
