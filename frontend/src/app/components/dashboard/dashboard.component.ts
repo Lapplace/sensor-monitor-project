@@ -1,15 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subscription, interval } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { DeviceReading, SiteOption } from '../../models/reading.model';
 import { ReadingService } from '../../services/reading.service';
 import { ChartTempHumidComponent } from '../chart-temp-humid/chart-temp-humid.component';
 
-const LATEST_COUNT = 10; // số bản ghi hiển thị trên CHART (cố định)
-const AUTO_REFRESH_MS = 10000; // tự động làm mới chart mỗi 10 giây
+const LATEST_COUNT = 10; // số bản ghi hiển thị trên CHART
 
 type ExportMode = 'latest' | 'range';
 
@@ -20,50 +17,38 @@ type ExportMode = 'latest' | 'range';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit {
   sites: SiteOption[] = [];
   selectedSerial = '';
   selectedSite = '';
 
-  // Dữ liệu hiển thị trên chart - luôn là LATEST_COUNT bản ghi gần nhất
   readings: DeviceReading[] = [];
   loading = false;
 
-  // ----- Cấu hình riêng cho việc XUẤT EXCEL (độc lập với chart) -----
+  // ----- Cấu hình riêng cho việc XUẤT EXCEL -----
   showExportPanel = false;
   exportMode: ExportMode = 'latest';
-  exportLimit = 10; // dùng khi exportMode = 'latest'
-  exportFrom = ''; // datetime-local string, dùng khi exportMode = 'range'
-  exportTo = ''; // datetime-local string, dùng khi exportMode = 'range'
+  exportLimit = 10;
+  exportFrom = '';
+  exportTo = '';
   exporting = false;
   exportError = '';
 
-  private refreshSub?: Subscription;
-
-  constructor(private readingService: ReadingService) {}
+  constructor(
+    private readingService: ReadingService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadSites();
     this.loadData();
-
-    this.refreshSub = interval(AUTO_REFRESH_MS)
-      .pipe(
-        switchMap(() =>
-          this.readingService.getLatest({
-            serial: this.selectedSerial || undefined,
-            limit: LATEST_COUNT,
-          })
-        )
-      )
-      .subscribe((data) => (this.readings = data));
-  }
-
-  ngOnDestroy(): void {
-    this.refreshSub?.unsubscribe();
   }
 
   loadSites() {
-    this.readingService.getSites().subscribe((sites) => (this.sites = sites));
+    this.readingService.getSites().subscribe((sites) => {
+      this.sites = sites;
+      this.cdr.detectChanges();
+    });
   }
 
   onSerialChange() {
@@ -74,6 +59,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   loadData() {
     this.loading = true;
+    this.cdr.detectChanges(); // hiển thị ngay trạng thái "Đang tải..." trên nút
+
     this.readingService
       .getLatest({
         serial: this.selectedSerial || undefined,
@@ -83,9 +70,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.readings = data;
           this.loading = false;
+          this.cdr.detectChanges(); // ép render ngay khi có kết quả, không delay
         },
-        error: () => {
+        error: (err) => {
+          console.error('Lấy dữ liệu thất bại:', err);
           this.loading = false;
+          this.cdr.detectChanges();
         },
       });
   }
@@ -99,11 +89,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.exportError = '';
   }
 
-  /**
-   * Xuất Excel: dữ liệu xuất ra ĐỘC LẬP với dữ liệu đang vẽ trên chart.
-   * - Chế độ "latest": lấy đúng N bản ghi gần nhất (N do người dùng nhập).
-   * - Chế độ "range": lấy toàn bộ bản ghi trong khoảng thời gian đã chọn.
-   */
   exportExcel() {
     this.exportError = '';
 
@@ -122,16 +107,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
           next: (data) => {
             this.exporting = false;
             this.writeExcelFile(data, `${this.exportLimit}-ban-ghi-gan-nhat`);
+            this.cdr.detectChanges();
           },
           error: () => {
             this.exporting = false;
             this.exportError = 'Lấy dữ liệu thất bại, thử lại sau.';
+            this.cdr.detectChanges();
           },
         });
       return;
     }
 
-    // exportMode === 'range'
     if (!this.exportFrom || !this.exportTo) {
       this.exportError = 'Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc';
       return;
@@ -155,13 +141,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.exporting = false;
           if (!data.length) {
             this.exportError = 'Không có dữ liệu trong khoảng thời gian này';
+            this.cdr.detectChanges();
             return;
           }
           this.writeExcelFile(data, 'theo-khoang-thoi-gian');
+          this.cdr.detectChanges();
         },
         error: () => {
           this.exporting = false;
           this.exportError = 'Lấy dữ liệu thất bại, thử lại sau.';
+          this.cdr.detectChanges();
         },
       });
   }
@@ -172,7 +161,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Làm phẳng dữ liệu: mỗi dòng excel = 1 cảm biến tại 1 thời điểm
     const rows: any[] = [];
     for (const r of data) {
       const timeLabel = r.datetime_vn ?? new Date(r.ts * 1000).toLocaleString('vi-VN');
